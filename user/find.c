@@ -58,7 +58,7 @@ const char* fmtname(const char* path)
     }
     memmove(buf, p, strlen(p));
     // reset left
-    memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+    memset(buf+strlen(p), '\0', DIRSIZ-strlen(p));
     return buf;
 }
 
@@ -148,11 +148,15 @@ int matchhere(const char* re,const char* text)
     return 0;
 }
 // test if text match regex
-// 1:true 0: false
+// 1:true 0: fail
 int match(const char* re,const char* text)
 {
     if (re[0] == '^') {
-        return match(re + 1, text);
+	if (matchhere(re+1, text)) {
+	    return 1;
+	}else{
+	  return 0;
+	}
     }
     while (*text != '\0') {
         if (matchhere(re, text)) {
@@ -169,10 +173,19 @@ int main(int argc, char* argv[])
         fprintf(2, "usage: find [path] pattern\n");
         exit();
     }
+    char buf[255];
     if (argc <= 2) {
-        find(argv[1], ".");
+	strcpy(buf+1,argv[1]);
+	buf[0]='^';
+	buf[strlen(argv[1])+1]='$';
+	buf[strlen(argv[1])+2]='\0';
+        find(buf, ".");
         exit();
     }
-    find(argv[2], argv[1]);
+    strcpy(buf+1,argv[2]);
+    buf[0]='^';
+    buf[strlen(argv[2])+1]='$';
+    buf[strlen(argv[2])+2]='\0';
+    find(buf, argv[1]);
     exit();
 }
